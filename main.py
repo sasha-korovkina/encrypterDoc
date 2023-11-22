@@ -4,6 +4,7 @@ Algo:
 2. The file is opened and the isin is replaced
 3.
 '''
+
 import aspose.pdf as ap
 import os
 import re
@@ -11,6 +12,15 @@ import pandas as pd
 import random
 import string
 import shutil
+
+# Company names generator
+company_names = ["GALAPAGOS NV", "TECK RESOURCES LTD", "IMPLENIA AG"]
+random_names = ["".join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ ") for _ in range(len(name))) for name in company_names]
+df = pd.DataFrame({
+    'Company': company_names,
+    'Random_Name': random_names
+})
+print(df)
 
 directory_path = r"M:\CDB\Analyst\Rhys\Python\CustodianExtract\custodian_extraction\input\Barclays Capital Sec"
 output_directory_path = r"M:\CDB\Analyst\Rhys\Python\CustodianExtract\custodian_extraction\output\Barclays Capital Sec"
@@ -54,7 +64,6 @@ def wordReplace(directory_path):
 
     for filename in os.listdir(directory_path):
         full_path = os.path.join(directory_path, filename)
-        print(full_path)
 
         # Load the document
         doc = ap.Document(full_path)
@@ -73,20 +82,32 @@ def wordReplace(directory_path):
 
         # Generate a new ISIN
         new_word = generate_random_sequence(old_word)
-        print(f"New ISIN: {new_word}")
 
         # Replace text in the document
         for txtFragment in textFragmentCollection:
             txtFragment.text = new_word
+
+        # replace the company name
+        for company_name in company_names:
+            txtAbsorber = ap.text.TextFragmentAbsorber(company_name)
+            doc.pages.accept(txtAbsorber)
+            textFragmentCollection2 = txtAbsorber.text_fragments
+            if textFragmentCollection2:
+                print(f"{company_name} is in the PDF.")
+                match_row = df[df['Company'] == company_name]
+                if not match_row.empty:
+                    dummy_company = match_row['Random_Name'].values[0]
+                    print(f"Matching Random_Name: {dummy_company}")
+                    for txtFragment in textFragmentCollection2:
+                        txtFragment.text = dummy_company
 
         # Create the new filename with the prefix "ENCRYPTED" and keep the PDF extension
         new_filename = f"ENCRYPTED_{new_word}.pdf"
 
         # Save the file at the same path with the new filename
         save_path = os.path.join(os.path.dirname(full_path), new_filename)
-        print(f"Saving file at: {save_path}")
-        #doc.save(save_path)
-        new_full_path = os.path.join(output_directory_path, os.path.splitext(filename)[0] + ".xls")
+        doc.save(save_path)
+        new_full_path = os.path.join(output_directory_path, os.path.splitext(filename)[0] + ".xlsx")
         #output_new = os.path.join(output_directory_path, os.path.splitext(filename)[0]  + new_word + ".xls")
         output_new = os.path.join(output_directory_path, f"ENCRYPTED_{new_word}.xlsx")
 
