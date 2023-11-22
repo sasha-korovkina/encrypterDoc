@@ -2,7 +2,8 @@ import aspose.pdf as ap
 import os
 import re
 import pandas as pd
-import uuid
+import random
+import string
 
 # variables
 input_path = "M:\CDB\Analyst\Rhys\Python\CustodianExtract\custodian_extraction\input\Barclays Capital Sec\@Barclays Capital Sec Uk@ BE0003818359 31102023.pdf"
@@ -28,15 +29,17 @@ def extract_isin_codes(directory_path):
 
     return isin_codes
 
-def generate_random_sequence():
-    return str(uuid.uuid4())
+def generate_random_sequence(isin_format):
+    letters = [random.choice(string.ascii_uppercase) for _ in range(2)]
+    digits = [random.choice(string.digits) for _ in range(10)]
+    return ''.join(letters + digits)
 
 def wordReplace(input_path, output_path, old_word, new_word):
     isin_codes = extract_isin_codes(directory_path)
     for isin_code in isin_codes:
         print(isin_code)
 
-    random_sequences = [generate_random_sequence() for _ in isin_codes]
+    random_sequences = [generate_random_sequence(isin_format) for isin_format in isin_codes]
     # Create a DataFrame
     df = pd.DataFrame({
         'ISIN': isin_codes,
@@ -62,7 +65,6 @@ def wordReplace(input_path, output_path, old_word, new_word):
     for txtFragment in textFragmentCollection:
         txtFragment.text = new_word
 
-    # Save the updated PDF
     doc.save(output_path)
 
 wordReplace(input_path, output_path, old_word, new_word)
