@@ -10,8 +10,10 @@ import re
 import pandas as pd
 import random
 import string
+import shutil
 
 directory_path = r"M:\CDB\Analyst\Rhys\Python\CustodianExtract\custodian_extraction\input\Barclays Capital Sec"
+output_directory_path = r"M:\CDB\Analyst\Rhys\Python\CustodianExtract\custodian_extraction\output\Barclays Capital Sec"
 
 def extract_isin_codes(filename):
     # Define a regular expression pattern to match 12-letter number codes
@@ -83,6 +85,17 @@ def wordReplace(directory_path):
         # Save the file at the same path with the new filename
         save_path = os.path.join(os.path.dirname(full_path), new_filename)
         print(f"Saving file at: {save_path}")
-        doc.save(save_path)
+        #doc.save(save_path)
+        new_full_path = os.path.join(output_directory_path, os.path.splitext(filename)[0] + ".xls")
+        #output_new = os.path.join(output_directory_path, os.path.splitext(filename)[0]  + new_word + ".xls")
+        output_new = os.path.join(output_directory_path, f"ENCRYPTED_{new_word}.xlsx")
+
+        if os.path.exists(new_full_path):
+            shutil.copy2(new_full_path, output_new)
+            print(f"File copied to: {output_new}")
+        else:
+            print(f"File not found at: {new_full_path}")
+        print(output_new)
+
 
 wordReplace(directory_path)
