@@ -1,3 +1,9 @@
+'''
+Algo:
+1. The file goes threough the folder and gets the isin which will be replaced in each file
+2. The file is opened and the isin is replaced
+3.
+'''
 import aspose.pdf as ap
 import os
 import re
@@ -5,36 +11,27 @@ import pandas as pd
 import random
 import string
 
-# variables
-input_path = "M:\CDB\Analyst\Rhys\Python\CustodianExtract\custodian_extraction\input\Barclays Capital Sec\@Barclays Capital Sec Uk@ BE0003818359 31102023.pdf"
-output_path = "M:\CDB\Analyst\Rhys\Python\CustodianExtract\custodian_extraction\input\Barclays Capital Sec\Barclays Capital Sec Uk.pdf"
 directory_path = r"M:\CDB\Analyst\Rhys\Python\CustodianExtract\custodian_extraction\input\Barclays Capital Sec"
 
-old_word = "BE0003818359"
-new_word = "US5949181045"
-
-def extract_isin_codes(directory_path):
-    # Get all files in the directory
-    files = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))]
-
+def extract_isin_codes(filename):
     # Define a regular expression pattern to match 12-letter number codes
     pattern = re.compile(r'\b[A-Za-z]{2}[0-9]{10}\b')
 
-    # Extract ISIN codes from file names
-    isin_codes = []
-    for file in files:
-        match = pattern.search(file)
-        if match:
-            isin_codes.append(match.group())
-
-    return isin_codes
+    match = pattern.search(filename)
+    if match:
+        isin = match.group()
+        print(f"Found ISIN in the defined format: {isin}")
+        return isin
+    else:
+        print("No ISIN found in the defined format.")
+        return None
 
 def generate_random_sequence(isin_format):
     letters = [random.choice(string.ascii_uppercase) for _ in range(2)]
     digits = [random.choice(string.digits) for _ in range(10)]
     return ''.join(letters + digits)
 
-def wordReplace(input_path, output_path, old_word, new_word):
+def isin_dataframe():
     isin_codes = extract_isin_codes(directory_path)
     for isin_code in isin_codes:
         print(isin_code)
@@ -49,22 +46,43 @@ def wordReplace(input_path, output_path, old_word, new_word):
     # Print the DataFrame
     print(df)
 
-    # Load the document
-    doc = ap.Document(input_path)
 
-    # Create a text absorber
-    txtAbsorber = ap.text.TextFragmentAbsorber(old_word)
+def wordReplace(directory_path):
+    print("Files in the directory:")
 
-    # Search text
-    doc.pages.accept(txtAbsorber)
+    for filename in os.listdir(directory_path):
+        full_path = os.path.join(directory_path, filename)
+        print(full_path)
 
-    # Get reference to the found text fragments
-    textFragmentCollection = txtAbsorber.text_fragments
+        # Load the document
+        doc = ap.Document(full_path)
 
-    # Parse all the searched text fragments and replace text
-    for txtFragment in textFragmentCollection:
-        txtFragment.text = new_word
+        # Extract the ISIN from the title
+        old_word = extract_isin_codes(filename)
 
-    doc.save(output_path)
+        # Create a text absorber
+        txtAbsorber = ap.text.TextFragmentAbsorber(old_word)
 
-wordReplace(input_path, output_path, old_word, new_word)
+        # Search text
+        doc.pages.accept(txtAbsorber)
+
+        # Get reference to the found text fragments
+        textFragmentCollection = txtAbsorber.text_fragments
+
+        # Generate a new ISIN
+        new_word = generate_random_sequence(old_word)
+        print(f"New ISIN: {new_word}")
+
+        # Replace text in the document
+        for txtFragment in textFragmentCollection:
+            txtFragment.text = new_word
+
+        # Create the new filename with the prefix "ENCRYPTED" and keep the PDF extension
+        new_filename = f"ENCRYPTED_{new_word}.pdf"
+
+        # Save the file at the same path with the new filename
+        save_path = os.path.join(os.path.dirname(full_path), new_filename)
+        print(f"Saving file at: {save_path}")
+        doc.save(save_path)
+
+wordReplace(directory_path)
