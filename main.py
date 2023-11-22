@@ -15,7 +15,8 @@ import shutil
 
 # Company names generator
 company_names = ["GALAPAGOS NV", "TECK RESOURCES LTD", "IMPLENIA AG"]
-random_names = ["".join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ ") for _ in range(len(name))) for name in company_names]
+random_names = ["AMAZON.COM INC", "FACEBOOK INC.", "JOHNSON & JOHNSON"]
+
 df = pd.DataFrame({
     'Company': company_names,
     'Random_Name': random_names
